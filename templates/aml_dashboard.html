@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AML Pattern Investigator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0b0f19; color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .card { background-color: #141b2d; border: 1px solid #1f2a40; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .table-container { background-color: #141b2d; border: 1px solid #1f2a40; border-radius: 12px; padding: 24px; }
+        .ai-briefcase { background-color: #090d16; border: 1px solid #1f2a40; border-radius: 8px; font-family: 'Consolas', monospace; min-height: 320px; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6; padding: 18px; color: #f43f5e; }
+        .text-muted { color: #8492a6 !important; }
+        .metric-label { font-size: 0.75rem; font-weight: 700; color: #8492a6; text-transform: uppercase; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid px-md-5 py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary border-opacity-25">
+        <div>
+            <a href="/" class="btn btn-sm btn-outline-light mb-2 rounded-pill px-3"><i class="fa-solid fa-arrow-left me-2"></i>Portal Hub</a>
+            <h1 class="text-white fw-bold">🕵️‍♂️ AML Pattern Investigator</h1>
+        </div>
+        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 p-2 fs-6 rounded-pill px-3">
+            <i class="fa-solid fa-shield-halved me-2"></i>PaySim Transaction Tracking
+        </span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Transaction Query Control -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="table-container h-100">
+                <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-magnifying-glass-dollar text-danger me-2"></i>Transaction Query</h4>
+                <p class="small text-muted mb-4">Input a transaction reference key to trace laundering rings and review automated LLM investigator briefs.</p>
+                
+                <div class="mb-4">
+                    <label class="form-label metric-label text-white">Transaction ID</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-50 text-muted">#</span>
+                        <input type="number" id="amlTxInput" class="form-control bg-dark text-white border-secondary border-opacity-50 fs-5 font-monospace" placeholder="e.g., 23">
+                    </div>
+                </div>
+
+                <button class="btn btn-danger w-100 fw-bold py-2.5 shadow mb-3" onclick="triggerAMLInvestigation()">
+                    <i class="fa-solid fa-bolt me-2"></i>Run AML Investigation
+                </button>
+
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-25" id="amlStatusDisplay">
+                    <div class="text-muted small">System operational. Ready for queries.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Telemetry & Investigator Brief -->
+        <div class="col-xl-8 col-lg-7 d-flex flex-column gap-4">
+            <div class="card p-4">
+                <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-wave-square text-info me-2"></i>Telemetry Vector</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-center">
+                            <div class="metric-label">Transfer Volume</div>
+                            <div id="vTransferVolume" class="fs-4 fw-bold text-white font-monospace mt-1">$0.00</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-center">
+                            <div class="metric-label">Laundering Risk Assessment</div>
+                            <div class="mt-2"><span id="vLaunderingRisk" class="badge px-3 py-2 rounded-pill">-</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card p-4">
+                <h5 class="fw-bold text-danger mb-2"><i class="fa-solid fa-file-shield me-2"></i>Investigator Summary & Compliance Brief</h5>
+                <div id="amlInvestigatorBrief" class="ai-briefcase">Awaiting investigation parameters...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function triggerAMLInvestigation() {
+    const txId = document.getElementById('amlTxInput').value.trim();
+    const statusBox = document.getElementById('amlStatusDisplay');
+    const briefBox = document.getElementById('amlInvestigatorBrief');
+    const volBox = document.getElementById('vTransferVolume');
+    const riskBox = document.getElementById('vLaunderingRisk');
+
+    if (!txId) {
+        alert("Please key in a valid Transaction ID.");
+        return;
+    }
+
+    statusBox.innerHTML = `<div class="text-warning small fw-bold"><i class="fa-solid fa-spinner fa-spin me-2"></i>Tracing transaction nodes via MySQL & Groq...</div>`;
+    briefBox.innerText = "⏳ Compiling AML investigation brief and SAR report...";
+
+    try {
+        const response = await fetch('/aml/analyze/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ transaction_id: txId })
+        });
+
+        const data = await response.json();
+        statusBox.innerHTML = `<span class="text-success small fw-bold"><i class="fa-solid fa-circle-check me-2"></i>Investigation Completed.</span>`;
+
+        volBox.innerText = "$" + data.amount.toLocaleString();
+        riskBox.innerText = data.risk_status;
+        
+        if (data.risk_status.includes("HIGH") || data.risk_status.includes("CRITICAL")) {
+            riskBox.className = "badge bg-danger text-white px-3 py-2 rounded-pill fs-6";
+        } else {
+            riskBox.className = "badge bg-success text-white px-3 py-2 rounded-pill fs-6";
+        }
+
+        briefBox.innerText = data.investigator_brief;
+
+    } catch (err) {
+        console.error(err);
+        statusBox.innerHTML = `<span class="text-danger small fw-bold">❌ Connection error during AML trace.</span>`;
+        briefBox.innerText = "Error executing AML pipeline.";
+    }
+}
+</script>
+
+</body>
+</html>

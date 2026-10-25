@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Scorecard & Underwriting Workspace</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #0b0f19; color: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+        .card { background-color: #141b2d; border: 1px solid #1f2a40; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .table-container { background-color: #141b2d; border: 1px solid #1f2a40; border-radius: 12px; padding: 24px; }
+        .ai-briefcase { background-color: #090d16; border: 1px solid #1f2a40; border-radius: 8px; font-family: 'Consolas', monospace; min-height: 240px; white-space: pre-wrap; font-size: 0.9rem; line-height: 1.6; padding: 18px; color: #34d399; }
+        .text-muted { color: #8492a6 !important; }
+        .metric-label { font-size: 0.75rem; font-weight: 700; color: #8492a6; text-transform: uppercase; letter-spacing: 0.5px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid px-md-5 py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5 pb-3 border-bottom border-secondary border-opacity-25">
+        <div>
+            <a href="/" class="btn btn-sm btn-outline-light mb-2 rounded-pill px-3"><i class="fa-solid fa-arrow-left me-2"></i>Portal Hub</a>
+            <h1 class="text-white fw-bold">⚖️ Loan & Credit Scorecard Underwriting</h1>
+        </div>
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 p-2 fs-6 rounded-pill px-3">
+            <i class="fa-solid fa-file-invoice-dollar me-2"></i>German Credit Risk Model
+        </span>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left Column: Controls & Input -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="table-container h-100">
+                <h4 class="fw-bold text-white mb-3"><i class="fa-solid fa-calculator text-success me-2"></i>Application Evaluation</h4>
+                <p class="small text-muted mb-4">Input a specific application ID from your database to execute underwriting scorecards and AI credit analysis.</p>
+                
+                <div class="mb-4">
+                    <label class="form-label metric-label text-white">Application Reference ID</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark border-secondary border-opacity-50 text-muted">#</span>
+                        <input type="number" id="loanAppInput" class="form-control bg-dark text-white border-secondary border-opacity-50 fs-5 font-monospace" placeholder="e.g., 1">
+                    </div>
+                </div>
+
+                <button class="btn btn-success w-100 fw-bold py-2.5 shadow mb-3" onclick="triggerLoanEvaluation()">
+                    <i class="fa-solid fa-bolt me-2"></i>Run Underwriting Engine
+                </button>
+
+                <div class="mt-4 pt-3 border-top border-secondary border-opacity-25" id="loanStatusDisplay">
+                    <div class="text-muted small">System operational. Ready for queries.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Results Dashboard -->
+        <div class="col-xl-8 col-lg-7">
+            <div id="loanPlaceholder" class="card p-5 h-100 text-center text-muted d-flex align-items-center justify-content-center border-dashed" style="min-height: 500px;">
+                <div>
+                    <i class="fa-solid fa-scale-balanced fs-1 mb-3 text-secondary opacity-40"></i>
+                    <h5 class="text-white mb-2">Awaiting Credit Assessment</h5>
+                    <p class="small text-muted">Enter a target application reference ID on the left to begin.</p>
+                </div>
+            </div>
+
+            <div id="loanDashboard" class="d-flex flex-column gap-4" style="display: none !important;">
+                <div class="card p-4">
+                    <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-chart-pie text-success me-2"></i>Scorecard & Decision Matrix</h5>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-center">
+                                <div class="metric-label">Credit Score</div>
+                                <div id="loanScore" class="fs-4 fw-bold text-white font-monospace mt-1">0/850</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-center">
+                                <div class="metric-label">Requested Amount</div>
+                                <div id="loanAmount" class="fs-4 fw-bold text-white font-monospace mt-1">$0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3 bg-dark bg-opacity-40 rounded border border-secondary border-opacity-10 text-center">
+                                <div class="metric-label">Underwriting Route</div>
+                                <div class="mt-2"><span id="loanDecisionBadge" class="badge px-3 py-2 rounded-pill">-</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-4">
+                    <h5 class="fw-bold text-success mb-2"><i class="fa-solid fa-file-shield me-2"></i>Executive Credit Memorandum</h5>
+                    <div id="loanExecutiveMemo" class="ai-briefcase mb-3"></div>
+                    
+                    <h5 class="fw-bold text-info mb-2"><i class="fa-solid fa-envelope-open-text me-2"></i>Customer Notification Letter</h5>
+                    <div id="loanCustomerLetter" class="ai-briefcase" style="color: #38bdf8;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function triggerLoanEvaluation() {
+    const appId = document.getElementById('loanAppInput').value.trim();
+    const statusBox = document.getElementById('loanStatusDisplay');
+    const placeholder = document.getElementById('loanPlaceholder');
+    const dashboard = document.getElementById('loanDashboard');
+
+    if (!appId) {
+        alert("Please enter a valid Application Reference ID.");
+        return;
+    }
+
+    placeholder.style.setProperty('display', 'none', 'important');
+    dashboard.style.setProperty('display', 'flex', 'important');
+    statusBox.innerHTML = `<div class="text-warning small fw-bold"><i class="fa-solid fa-spinner fa-spin me-2"></i>Processing underwriting agent rules & AI...</div>`;
+    document.getElementById('loanExecutiveMemo').innerText = "⏳ Compiling executive memo via AI...";
+    document.getElementById('loanCustomerLetter').innerText = "⏳ Compiling customer notification letter...";
+
+    try {
+        const response = await fetch('/loan/evaluate/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ application_id: appId })
+        });
+
+        if (response.status === 404) {
+            statusBox.innerHTML = `<span class="text-danger small fw-bold">❌ Application ID #${appId} not found.</span>`;
+            placeholder.style.setProperty('display', 'flex', 'important');
+            dashboard.style.setProperty('display', 'none', 'important');
+            return;
+        }
+
+        const data = await response.json();
+        statusBox.innerHTML = `<span class="text-success small fw-bold"><i class="fa-solid fa-circle-check me-2"></i>Evaluation Completed.</span>`;
+
+        document.getElementById('loanScore').innerText = data.ai_results.scorecard.credit_score + "/850";
+        document.getElementById('loanAmount').innerText = "$" + data.loan_details.requested_amount.toLocaleString();
+        
+        const badge = document.getElementById('loanDecisionBadge');
+        const decision = data.ai_results.scorecard.underwriting_decision;
+        badge.innerText = decision;
+        if (decision.includes('APPROVE') || decision.includes('ACCEPT')) {
+            badge.className = "badge bg-success text-white px-3 py-2 rounded-pill";
+        } else if (decision.includes('REJECT')) {
+            badge.className = "badge bg-danger text-white px-3 py-2 rounded-pill";
+        } else {
+            badge.className = "badge bg-warning text-dark px-3 py-2 rounded-pill";
+        }
+
+        document.getElementById('loanExecutiveMemo').innerText = data.ai_results.generative_outputs.executive_credit_summary;
+        document.getElementById('loanCustomerLetter').innerText = data.ai_results.generative_outputs.customer_facing_letter;
+
+    } catch (err) {
+        console.error(err);
+        statusBox.innerHTML = `<span class="text-danger small fw-bold">❌ Connection error during fetch loop.</span>`;
+    }
+}
+</script>
+
+</body>
+</html>
